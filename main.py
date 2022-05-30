@@ -111,15 +111,44 @@ def main():
     pyplot.title("KMean clustering (Silhouette method)")
     pyplot.show()
 
-    # Agglomerative clustering
-    mlsp.misc.print_title("Agglomerative clustering")
-    model = AgglomerativeClustering(n_clusters=5, affinity="euclidean", linkage="ward", compute_distances=True)
+    mlsp.misc.print_title("> KMean with n_cluster=4", char="~")
+    model = KMeans(init="random", n_clusters=4, n_init=10, max_iter=300, random_state=7)
 
-    data["Cluster"] = model.fit_predict(data_scaled)
+    data["Cluster KMean"] = model.fit_predict(data_scaled)
     data_reduced = pandas.DataFrame(PCA(n_components=2).fit_transform(data[numeric_features]), columns=["pca1", "pca2"])
 
-    pyplot.scatter(data_reduced["pca1"], data_reduced["pca2"], c=data["Cluster"], s=50)
-    pyplot.title("Agglomerative clustering")
+    pyplot.scatter(data_reduced["pca1"], data_reduced["pca2"], c=data["Cluster KMean"], s=50)
+    pyplot.scatter(model.cluster_centers_[:, 0], model.cluster_centers_[:, 1], c="black", s=200, alpha=0.5)
+    pyplot.title("KMean with n_cluster=4")
+    pyplot.show()
+
+    # Agglomerative clustering
+    mlsp.misc.print_title("Agglomerative clustering")
+    mlsp.misc.print_title("> Find the best n_cluster (Silhouette method)", char="~")
+    k_range = range(2, 20)
+    model_silhouette = []
+
+    for num_k in k_range:
+        model = AgglomerativeClustering(n_clusters=num_k, affinity="euclidean", linkage="ward", compute_distances=True)
+        model.fit(data_scaled)
+
+        model_silhouette.append(silhouette_score(data_scaled, model.labels_))
+
+    pyplot.plot(k_range, model_silhouette)
+    pyplot.xticks(k_range)
+    pyplot.xlabel("Number of clusters")
+    pyplot.ylabel("Silhouette Coefficient")
+    pyplot.title("Agglomerative Clustering (Silhouette method)")
+    pyplot.show()
+
+    mlsp.misc.print_title("> Agglomerative clustering with n_cluster=2", char="~")
+    model = AgglomerativeClustering(n_clusters=2, affinity="euclidean", linkage="ward", compute_distances=True)
+
+    data["Cluster Agglo."] = model.fit_predict(data_scaled)
+    data_reduced = pandas.DataFrame(PCA(n_components=2).fit_transform(data[numeric_features]), columns=["pca1", "pca2"])
+
+    pyplot.scatter(data_reduced["pca1"], data_reduced["pca2"], c=data["Cluster Agglo."], s=50)
+    pyplot.title("Agglomerative clustering with n_cluster=2")
     pyplot.show()
 
     counts = numpy.zeros(model.children_.shape[0])
@@ -138,23 +167,6 @@ def main():
 
     linkage_matrix = numpy.column_stack([model.children_, model.distances_, counts]).astype(float)
     dendrogram(linkage_matrix)
-    pyplot.show()
-
-    mlsp.misc.print_title("> Find the best n_cluster (Silhouette method)", char="~")
-    k_range = range(2, 20)
-    model_silhouette = []
-
-    for num_k in k_range:
-        model = AgglomerativeClustering(n_clusters=num_k, affinity="euclidean", linkage="ward", compute_distances=True)
-        model.fit(data_scaled)
-
-        model_silhouette.append(silhouette_score(data_scaled, model.labels_))
-
-    pyplot.plot(k_range, model_silhouette)
-    pyplot.xticks(k_range)
-    pyplot.xlabel("Number of clusters")
-    pyplot.ylabel("Silhouette Coefficient")
-    pyplot.title("Agglomerative Clustering (Silhouette method)")
     pyplot.show()
 
     # Program end
