@@ -112,10 +112,10 @@ def main():
     pyplot.show()
 
     mlsp.misc.print_title("> KMean with n_cluster=4", char="~")
+    data_reduced = pandas.DataFrame(PCA(n_components=2).fit_transform(data[numeric_features]), columns=["pca1", "pca2"])
     model = KMeans(init="random", n_clusters=4, n_init=10, max_iter=300, random_state=7)
 
-    data["Cluster KMean"] = model.fit_predict(data_scaled)
-    data_reduced = pandas.DataFrame(PCA(n_components=2).fit_transform(data[numeric_features]), columns=["pca1", "pca2"])
+    data["Cluster KMean"] = model.fit_predict(data_reduced)
 
     pyplot.scatter(data_reduced["pca1"], data_reduced["pca2"], c=data["Cluster KMean"], s=50)
     pyplot.scatter(model.cluster_centers_[:, 0], model.cluster_centers_[:, 1], c="black", s=200, alpha=0.5)
